@@ -39,17 +39,34 @@
       overflow-x: hidden;
     }
 
+    /* Flowing blue & white top strip */
     body::before {
       content: "";
-      position: relative;
-      z-index: 2;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 20;
       display: block;
-      width: 100%;
-      height: 2px;
-      background: linear-gradient(90deg, var(--cyan) 50%, var(--white) 50%);
+      height: 3px;
+      background: linear-gradient(
+        90deg,
+        var(--cyan) 0%,
+        var(--white) 25%,
+        var(--cyan) 50%,
+        var(--white) 75%,
+        var(--cyan) 100%
+      );
+      background-size: 200% 100%;
+      animation: stripFlow 3.5s linear infinite;
     }
 
-    /* Pulsing, moving, wiggling #00c8ff & #ffffff background */
+    @keyframes stripFlow {
+      0%   { background-position: 0% 0%; }
+      100% { background-position: 200% 0%; }
+    }
+
+    /* Lightweight pulsing, moving, wiggling #00c8ff & #ffffff background */
     .bg-fx {
       position: fixed;
       inset: 0;
@@ -65,85 +82,157 @@
         linear-gradient(to right, rgba(0, 200, 255, 0.06) 1px, transparent 1px),
         linear-gradient(to bottom, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
       background-size: 38px 38px;
+      will-change: transform, opacity;
       animation: gridWiggle 7s ease-in-out infinite;
     }
 
+    /* Soft radial-gradient blobs (no heavy GPU blur filter) */
     .bg-blob {
       position: absolute;
       border-radius: 50%;
-      filter: blur(85px);
       will-change: transform, opacity;
     }
 
     .blob-cyan-1 {
-      width: 420px;
-      height: 420px;
-      top: -90px;
-      left: -80px;
-      background: #00c8ff;
+      width: 620px;
+      height: 620px;
+      top: -190px;
+      left: -170px;
+      background: radial-gradient(circle, rgba(0, 200, 255, 0.32) 0%, rgba(0, 200, 255, 0) 68%);
       animation: floatWiggleA 9s ease-in-out infinite, pulseA 3.6s ease-in-out infinite;
     }
 
     .blob-white-1 {
-      width: 360px;
-      height: 360px;
-      top: 18%;
-      right: -90px;
-      background: #ffffff;
+      width: 540px;
+      height: 540px;
+      top: 10%;
+      right: -180px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 68%);
       animation: floatWiggleB 11s ease-in-out infinite, pulseB 4.4s ease-in-out infinite;
     }
 
     .blob-cyan-2 {
-      width: 460px;
-      height: 460px;
-      bottom: -140px;
-      left: 22%;
-      background: #00c8ff;
+      width: 680px;
+      height: 680px;
+      bottom: -240px;
+      left: 16%;
+      background: radial-gradient(circle, rgba(0, 200, 255, 0.28) 0%, rgba(0, 200, 255, 0) 68%);
       animation: floatWiggleB 13s ease-in-out infinite reverse, pulseA 4.8s ease-in-out infinite;
     }
 
     .blob-white-2 {
-      width: 300px;
-      height: 300px;
-      bottom: 8%;
-      left: -60px;
-      background: #ffffff;
+      width: 480px;
+      height: 480px;
+      bottom: -40px;
+      left: -140px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0) 68%);
       animation: floatWiggleA 10s ease-in-out infinite reverse, pulseB 3.9s ease-in-out infinite;
     }
 
+    /* Subtle diagonal sweep beam */
+    .bg-sweep {
+      position: absolute;
+      inset: -40%;
+      background: linear-gradient(
+        115deg,
+        transparent 44%,
+        rgba(0, 200, 255, 0.045) 49%,
+        rgba(255, 255, 255, 0.035) 51%,
+        transparent 56%
+      );
+      will-change: transform;
+      animation: sweepSlide 12s ease-in-out infinite;
+    }
+
+    /* Lightweight floating mini GD cubes */
+    .bg-cubes {
+      position: absolute;
+      inset: 0;
+    }
+
+    .bg-cube {
+      position: absolute;
+      bottom: -40px;
+      border-radius: 3px;
+      border: 1px solid rgba(0, 200, 255, 0.28);
+      background: rgba(0, 200, 255, 0.03);
+      will-change: transform, opacity;
+      animation: cubeFloat linear infinite;
+    }
+
+    .bg-cube.white {
+      border-color: rgba(255, 255, 255, 0.22);
+      background: rgba(255, 255, 255, 0.025);
+    }
+
+    @keyframes cubeFloat {
+      0% {
+        transform: translate3d(0, 0, 0) rotate(0deg);
+        opacity: 0;
+      }
+      12% {
+        opacity: 0.75;
+      }
+      50% {
+        transform: translate3d(var(--wiggle, 18px), -55vh, 0) rotate(140deg);
+      }
+      88% {
+        opacity: 0.65;
+      }
+      100% {
+        transform: translate3d(calc(var(--wiggle, 18px) * -0.6), -115vh, 0) rotate(280deg);
+        opacity: 0;
+      }
+    }
+
+    @keyframes sweepSlide {
+      0%, 100% { transform: translate3d(-22%, -8%, 0); }
+      50%      { transform: translate3d(22%, 8%, 0); }
+    }
+
     @keyframes floatWiggleA {
-      0%   { transform: translate(0px, 0px) rotate(0deg); }
-      20%  { transform: translate(65px, 28px) rotate(6deg); }
-      40%  { transform: translate(25px, 75px) rotate(-5deg); }
-      60%  { transform: translate(90px, 40px) rotate(8deg); }
-      80%  { transform: translate(35px, -25px) rotate(-4deg); }
-      100% { transform: translate(0px, 0px) rotate(0deg); }
+      0%   { transform: translate3d(0px, 0px, 0) rotate(0deg); }
+      20%  { transform: translate3d(65px, 28px, 0) rotate(6deg); }
+      40%  { transform: translate3d(25px, 75px, 0) rotate(-5deg); }
+      60%  { transform: translate3d(90px, 40px, 0) rotate(8deg); }
+      80%  { transform: translate3d(35px, -25px, 0) rotate(-4deg); }
+      100% { transform: translate3d(0px, 0px, 0) rotate(0deg); }
     }
 
     @keyframes floatWiggleB {
-      0%   { transform: translate(0px, 0px) rotate(0deg); }
-      25%  { transform: translate(-70px, 35px) rotate(-7deg); }
-      50%  { transform: translate(-30px, -55px) rotate(6deg); }
-      75%  { transform: translate(-85px, -15px) rotate(-5deg); }
-      100% { transform: translate(0px, 0px) rotate(0deg); }
+      0%   { transform: translate3d(0px, 0px, 0) rotate(0deg); }
+      25%  { transform: translate3d(-70px, 35px, 0) rotate(-7deg); }
+      50%  { transform: translate3d(-30px, -55px, 0) rotate(6deg); }
+      75%  { transform: translate3d(-85px, -15px, 0) rotate(-5deg); }
+      100% { transform: translate3d(0px, 0px, 0) rotate(0deg); }
     }
 
     @keyframes pulseA {
-      0%, 100% { opacity: 0.14; scale: 0.95; }
-      50%      { opacity: 0.28; scale: 1.12; }
+      0%, 100% { opacity: 0.65; transform: scale(0.95); }
+      50%      { opacity: 1; transform: scale(1.1); }
     }
 
     @keyframes pulseB {
-      0%, 100% { opacity: 0.08; scale: 0.92; }
-      50%      { opacity: 0.2; scale: 1.1; }
+      0%, 100% { opacity: 0.55; transform: scale(0.92); }
+      50%      { opacity: 0.95; transform: scale(1.08); }
     }
 
     @keyframes gridWiggle {
-      0%   { transform: translate(0px, 0px) rotate(0deg); opacity: 0.7; }
-      25%  { transform: translate(12px, -8px) rotate(0.4deg); opacity: 1; }
-      50%  { transform: translate(-10px, 14px) rotate(-0.4deg); opacity: 0.75; }
-      75%  { transform: translate(8px, 6px) rotate(0.3deg); opacity: 0.95; }
-      100% { transform: translate(0px, 0px) rotate(0deg); opacity: 0.7; }
+      0%   { transform: translate3d(0px, 0px, 0) rotate(0deg); opacity: 0.7; }
+      25%  { transform: translate3d(12px, -8px, 0) rotate(0.4deg); opacity: 1; }
+      50%  { transform: translate3d(-10px, 14px, 0) rotate(-0.4deg); opacity: 0.75; }
+      75%  { transform: translate3d(8px, 6px, 0) rotate(0.3deg); opacity: 0.95; }
+      100% { transform: translate3d(0px, 0px, 0) rotate(0deg); opacity: 0.7; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      body::before,
+      .bg-grid,
+      .bg-blob,
+      .bg-sweep,
+      .bg-cube {
+        animation: none !important;
+      }
     }
 
     a, button {
@@ -202,15 +291,44 @@
       z-index: 1;
     }
 
-    .gd-avatar {
+    .avatar-btn {
       width: 56px;
       height: 56px;
       flex-shrink: 0;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      cursor: pointer;
       transition: transform 0.18s ease;
     }
 
-    .profile:hover .gd-avatar {
+    .avatar-btn:not(.is-playing):hover {
       transform: translateY(-2px) rotate(-2deg);
+    }
+
+    .avatar-btn.is-playing {
+      cursor: default;
+    }
+
+    .gd-avatar {
+      width: 56px;
+      height: 56px;
+      display: block;
+    }
+
+    .gd-avatar-canvas {
+      display: none;
+      width: 56px;
+      height: 56px;
+      object-fit: contain;
+    }
+
+    .avatar-btn.is-playing .gd-avatar {
+      display: none;
+    }
+
+    .avatar-btn.is-playing .gd-avatar-canvas {
+      display: block;
     }
 
     .profile-meta {
@@ -785,18 +903,23 @@
     <div class="bg-blob blob-white-1"></div>
     <div class="bg-blob blob-cyan-2"></div>
     <div class="bg-blob blob-white-2"></div>
+    <div class="bg-sweep"></div>
+    <div id="bgCubes" class="bg-cubes"></div>
   </div>
 
   <main class="wrap">
     <header class="hero-card">
       <img id="heroWatermark" class="hero-watermark" src="KFRasaGD.png" alt="" aria-hidden="true" />
-      <a id="profileLink" class="profile" href="#" target="_blank" rel="noopener noreferrer">
-        <img id="avatarImg" class="gd-avatar" src="KFRasaGD.png" alt="GD Icon" />
-        <div class="profile-meta">
+      <div class="profile">
+        <button id="avatarBtn" class="avatar-btn" type="button" title="click me!">
+          <img id="avatarImg" class="gd-avatar" src="KFRasaGD.png" alt="GD Icon" />
+          <canvas id="avatarCanvas" class="gd-avatar-canvas" aria-hidden="true"></canvas>
+        </button>
+        <a id="profileLink" class="profile-meta" href="#" target="_blank" rel="noopener noreferrer">
           <h1 id="channelName">KFRasa</h1>
           <p id="channelBio">@KFRasa · just a small gd youtuber</p>
-        </div>
-      </a>
+        </a>
+      </div>
       <div class="header-actions">
         <span id="subBadge" class="sub-badge"></span>
         <a id="channelBtn" class="yt-link" href="#" target="_blank" rel="noopener noreferrer">
@@ -878,6 +1001,7 @@
       gdProfileUrl: "https://gdbrowser.com/u/KFRasa",
       iconPath: "KFRasaGD.png",
       petGifPath: "petpet.gif",
+      clickGifPath: "gd-click.gif",
 
       links: [
         {
@@ -923,6 +1047,330 @@
     ];
 
     const GD_CACHE_KEY = "kfrasa_gd_cache_v1";
+
+    // Spawn 10 lightweight floating mini GD cubes in the background
+    function initBgCubes() {
+      const container = document.getElementById("bgCubes");
+      const specs = [
+        { left: "6%",  size: 12, dur: 16, delay: -3,  wiggle: "20px",  white: false },
+        { left: "15%", size: 18, dur: 22, delay: -11, wiggle: "-24px", white: true  },
+        { left: "26%", size: 10, dur: 14, delay: -7,  wiggle: "16px",  white: false },
+        { left: "38%", size: 15, dur: 19, delay: -14, wiggle: "-18px", white: true  },
+        { left: "51%", size: 13, dur: 17, delay: -5,  wiggle: "22px",  white: false },
+        { left: "64%", size: 20, dur: 24, delay: -16, wiggle: "-20px", white: false },
+        { left: "76%", size: 11, dur: 15, delay: -9,  wiggle: "18px",  white: true  },
+        { left: "87%", size: 16, dur: 20, delay: -2,  wiggle: "-22px", white: false },
+        { left: "94%", size: 12, dur: 18, delay: -12, wiggle: "14px",  white: true  }
+      ];
+      specs.forEach((s) => {
+        const el = document.createElement("span");
+        el.className = "bg-cube" + (s.white ? " white" : "");
+        el.style.left = s.left;
+        el.style.width = `${s.size}px`;
+        el.style.height = `${s.size}px`;
+        el.style.animationDuration = `${s.dur}s`;
+        el.style.animationDelay = `${s.delay}s`;
+        el.style.setProperty("--wiggle", s.wiggle);
+        container.appendChild(el);
+      });
+    }
+
+    // Pure-JS GIF frame decoder so we can play forward (1x) then rewind (2x)
+    function decodeGifFrames(buffer) {
+      const bytes = new Uint8Array(buffer);
+      let pos = 0;
+      const readByte = () => bytes[pos++];
+      const readU16 = () => bytes[pos++] | (bytes[pos++] << 8);
+      const readBytes = (n) => {
+        const slice = bytes.subarray(pos, pos + n);
+        pos += n;
+        return slice;
+      };
+      const skipSubBlocks = () => {
+        while (pos < bytes.length) {
+          const len = readByte();
+          if (!len) break;
+          pos += len;
+        }
+      };
+      const readSubBlocks = () => {
+        const chunks = [];
+        let total = 0;
+        while (pos < bytes.length) {
+          const len = readByte();
+          if (!len) break;
+          const c = readBytes(len);
+          chunks.push(c);
+          total += len;
+        }
+        const out = new Uint8Array(total);
+        let offset = 0;
+        for (const c of chunks) {
+          out.set(c, offset);
+          offset += c.length;
+        }
+        return out;
+      };
+      const lzwDecode = (minCodeSize, data, pixelCount) => {
+        const clearCode = 1 << minCodeSize;
+        const eoiCode = clearCode + 1;
+        let codeSize = minCodeSize + 1;
+        let codeMask = (1 << codeSize) - 1;
+        let nextCode = eoiCode + 1;
+
+        const prefix = new Int32Array(4096);
+        const suffix = new Uint8Array(4096);
+        const stack = new Uint8Array(4096);
+        for (let i = 0; i < clearCode; i++) {
+          prefix[i] = -1;
+          suffix[i] = i;
+        }
+
+        const pixels = new Uint8Array(pixelCount);
+        let out = 0;
+        let bytePos = 0;
+        let datum = 0;
+        let bits = 0;
+        let prevCode = -1;
+        let first = 0;
+
+        while (out < pixelCount) {
+          while (bits < codeSize) {
+            if (bytePos >= data.length) return pixels;
+            datum |= data[bytePos++] << bits;
+            bits += 8;
+          }
+          let code = datum & codeMask;
+          datum >>= codeSize;
+          bits -= codeSize;
+
+          if (code === clearCode) {
+            codeSize = minCodeSize + 1;
+            codeMask = (1 << codeSize) - 1;
+            nextCode = eoiCode + 1;
+            prevCode = -1;
+            continue;
+          }
+          if (code === eoiCode) break;
+
+          if (prevCode === -1) {
+            if (code < clearCode) {
+              pixels[out++] = suffix[code];
+              prevCode = code;
+              first = suffix[code];
+            }
+            continue;
+          }
+
+          const inCode = code;
+          let stackPtr = 0;
+          if (code >= nextCode) {
+            if (code > nextCode) break;
+            stack[stackPtr++] = first;
+            code = prevCode;
+          }
+          while (code >= clearCode) {
+            stack[stackPtr++] = suffix[code];
+            code = prefix[code];
+            if (stackPtr >= 4096) break;
+          }
+          first = suffix[code];
+          stack[stackPtr++] = first;
+
+          while (stackPtr > 0 && out < pixelCount) {
+            pixels[out++] = stack[--stackPtr];
+          }
+
+          if (nextCode < 4096) {
+            prefix[nextCode] = prevCode;
+            suffix[nextCode] = first;
+            nextCode++;
+            if ((nextCode & codeMask) === 0 && nextCode < 4096) {
+              codeSize++;
+              codeMask = (1 << codeSize) - 1;
+            }
+          }
+          prevCode = inCode;
+        }
+        return pixels;
+      };
+
+      const sig = String.fromCharCode(...readBytes(6));
+      if (sig !== "GIF87a" && sig !== "GIF89a") {
+        throw new Error("Invalid GIF");
+      }
+
+      const screenW = readU16();
+      const screenH = readU16();
+      const packed = readByte();
+      const hasGCT = (packed & 0x80) !== 0;
+      const gctSize = 1 << ((packed & 0x07) + 1);
+      readByte(); // bgColorIndex
+      readByte(); // pixelAspect
+      const gct = hasGCT ? readBytes(gctSize * 3) : null;
+
+      const master = document.createElement("canvas");
+      master.width = screenW;
+      master.height = screenH;
+      const mCtx = master.getContext("2d", { willReadFrequently: true });
+
+      const temp = document.createElement("canvas");
+      const tCtx = temp.getContext("2d");
+
+      const frames = [];
+      let disposal = 0;
+      let hasTrans = false;
+      let transIndex = 0;
+      let delay = 100;
+
+      while (pos < bytes.length) {
+        const block = readByte();
+        if (block === 0x3b) break;
+
+        if (block === 0x21) {
+          const label = readByte();
+          if (label === 0xf9) {
+            readByte(); // block size (4)
+            const gcePacked = readByte();
+            disposal = (gcePacked >> 2) & 0x07;
+            hasTrans = (gcePacked & 0x01) !== 0;
+            const delayCs = readU16();
+            delay = (delayCs <= 1 ? 10 : delayCs) * 10;
+            transIndex = readByte();
+            readByte(); // terminator
+          } else {
+            skipSubBlocks();
+          }
+        } else if (block === 0x2c) {
+          const left = readU16();
+          const top = readU16();
+          const w = readU16();
+          const h = readU16();
+          const imgPacked = readByte();
+          const hasLCT = (imgPacked & 0x80) !== 0;
+          const interlaced = (imgPacked & 0x40) !== 0;
+          const lctSize = 1 << ((imgPacked & 0x07) + 1);
+          const ct = hasLCT ? readBytes(lctSize * 3) : gct;
+
+          const minCodeSize = readByte();
+          const lzwData = readSubBlocks();
+          const rawPixels = lzwDecode(minCodeSize, lzwData, w * h);
+
+          let pixels = rawPixels;
+          if (interlaced) {
+            pixels = new Uint8Array(w * h);
+            const passes = [
+              [0, 8],
+              [4, 8],
+              [2, 4],
+              [1, 2]
+            ];
+            let srcRow = 0;
+            for (const [start, step] of passes) {
+              for (let y = start; y < h; y += step) {
+                pixels.set(rawPixels.subarray(srcRow * w, (srcRow + 1) * w), y * w);
+                srcRow++;
+              }
+            }
+          }
+
+          const prevSnap = disposal === 3 ? mCtx.getImageData(0, 0, screenW, screenH) : null;
+
+          temp.width = w;
+          temp.height = h;
+          const imgData = tCtx.createImageData(w, h);
+          const d = imgData.data;
+          for (let i = 0; i < w * h; i++) {
+            const idx = pixels[i];
+            const o = i * 4;
+            if ((hasTrans && idx === transIndex) || !ct) {
+              d[o + 3] = 0;
+            } else {
+              const c = idx * 3;
+              d[o] = ct[c];
+              d[o + 1] = ct[c + 1];
+              d[o + 2] = ct[c + 2];
+              d[o + 3] = 255;
+            }
+          }
+          tCtx.putImageData(imgData, 0, 0);
+          mCtx.drawImage(temp, left, top);
+
+          const snap = document.createElement("canvas");
+          snap.width = screenW;
+          snap.height = screenH;
+          snap.getContext("2d").drawImage(master, 0, 0);
+          frames.push({ canvas: snap, delay });
+
+          if (disposal === 2) {
+            mCtx.clearRect(left, top, w, h);
+          } else if (disposal === 3 && prevSnap) {
+            mCtx.putImageData(prevSnap, 0, 0);
+          }
+
+          disposal = 0;
+          hasTrans = false;
+          delay = 100;
+        } else {
+          break;
+        }
+      }
+
+      return { width: screenW, height: screenH, frames };
+    }
+
+    function setupAvatarClickAnimation() {
+      const btn = document.getElementById("avatarBtn");
+      const canvas = document.getElementById("avatarCanvas");
+      const ctx = canvas.getContext("2d");
+
+      let decodedCache = null;
+      let isPlaying = false;
+
+      const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+      btn.addEventListener("click", async () => {
+        if (isPlaying) return;
+        isPlaying = true;
+        btn.classList.add("is-playing");
+        btn.setAttribute("aria-disabled", "true");
+
+        try {
+          if (!decodedCache) {
+            const res = await fetch(CHANNEL.clickGifPath);
+            if (!res.ok) throw new Error("Could not load click GIF");
+            const buf = await res.arrayBuffer();
+            decodedCache = decodeGifFrames(buf);
+          }
+
+          const { width, height, frames } = decodedCache;
+          if (!frames.length) throw new Error("Empty GIF");
+
+          canvas.width = width;
+          canvas.height = height;
+
+          // Forward pass (1x speed)
+          for (let i = 0; i < frames.length; i++) {
+            ctx.clearRect(0, 0, width, height);
+            ctx.drawImage(frames[i].canvas, 0, 0);
+            await sleep(frames[i].delay);
+          }
+
+          // Rewind pass (2x speed)
+          for (let i = frames.length - 2; i >= 0; i--) {
+            ctx.clearRect(0, 0, width, height);
+            ctx.drawImage(frames[i].canvas, 0, 0);
+            await sleep(Math.max(10, Math.round(frames[i].delay / 2)));
+          }
+        } catch (err) {
+          console.warn(err);
+        } finally {
+          btn.classList.remove("is-playing");
+          btn.removeAttribute("aria-disabled");
+          isPlaying = false;
+        }
+      });
+    }
 
     function formatViews(views) {
       if (views === null || views === undefined || Number.isNaN(Number(views))) {
@@ -1213,6 +1661,9 @@
     }
 
     async function init() {
+      initBgCubes();
+      setupAvatarClickAnimation();
+
       let data = null;
       try {
         const cacheBust = Math.floor(Date.now() / 60000);
