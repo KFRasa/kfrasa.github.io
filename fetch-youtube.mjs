@@ -1,4 +1,5 @@
 import { readFile, writeFile } from "node:fs/promises";
+import https from "node:https";
 
 const HANDLE = "@KFRasa";
 const GD_USERNAME = "KFRasa";
@@ -107,32 +108,113 @@ function pickThree(items, firstLabel) {
   ];
 }
 
-async function getGdStats(username, fallbackStats) {
-  try {
-    const res = await fetch(
-      `https://gdbrowser.com/api/profile/${encodeURIComponent(username)}`,
+// Boomlings requires an empty User-Agent header or Cloudflare blocks the request
+function postBoomlings(path, formParams) {
+  return new Promise((resolve, reject) => {
+    const body = new URLSearchParams(formParams).toString();
+    const req = https.request(
       {
-        headers: { "User-Agent": "KFRasa-Site-Sync/1.0" },
-        signal: AbortSignal.timeout(10000)
+        hostname: "www.boomlings.com",
+        path: `/database/${path}`,
+        method: "POST",
+        headers: {
+          "User-Agent": "",
+          "Content-Type": "application/x-www-form-urlencoded",
+          "Content-Length": Buffer.byteLength(body)
+        },
+        timeout: 10000
+      },
+      (res) => {
+        let chunks = "";
+        res.on("data", (d) => (chunks += d));
+        res.on("end", () => {
+          if (res.statusCode < 200 || res.statusCode >= 300) {
+            return reject(new Error(`Boomlings HTTP ${res.statusCode}`));
+          }
+          resolve(chunks);
+        });
       }
     );
-    if (!res.ok) throw new Error(`GDBrowser HTTP ${res.status}`);
-    const p = await res.json();
-    if (!p || p.stars === undefined) throw new Error("Invalid GDBrowser profile response");
+    req.on("timeout", () => req.destroy(new Error("Boomlings timeout")));
+    req.on("error", reject);
+    req.write(body);
+    req.end();
+  });
+}
 
-    return {
-      username: p.username || username,
-      stars: Number(p.stars ?? 0),
-      moons: Number(p.moons ?? 0),
-      diamonds: Number(p.diamonds ?? 0),
-      coins: Number(p.coins ?? 0),
-      userCoins: Number(p.userCoins ?? 0),
-      demons: Number(p.demons ?? 0),
-      cp: Number(p.cp ?? 0)
-    };
-  } catch (err) {
-    console.warn(`GDBrowser sync skipped (${err.message}); keeping previous GD stats.`);
-    return fallbackStats ?? null;
+function parseGdObj(str) {
+  const parts = str.split(":");
+  const obj = {};
+  for (let i = 0; i < parts.length - 1; i += 2) {
+    obj[parts[i]] = parts[i + 1];
+  }
+  return obj;
+}
+
+async function getGdStatsFromBoomlings(username) {
+  const searchRaw = await postBoomlings("getGJUsers20.php", {
+    secret: "Wmfd2893gb7",
+    str: username
+  });
+  if (!searchRaw || searchRaw === "-1" || searchRaw.startsWith("<")) {
+    throw new Error(`Boomlings search failed: ${searchRaw?.slice(0, 60)}`);
+  }
+
+  const users = searchRaw.split("#")[0].split("|").map(parseGdObj);
+  const match =
+    users.find((u) => (u["1"] || "").toLowerCase() === username.toLowerCase()) || users[0];
+
+  const accountId = match?.["16"];
+  if (!accountId) throw new Error("GD accountID not found");
+
+  const infoRaw = await postBoomlings("getGJUserInfo20.php", {
+    secret: "Wmfd2893gb7",
+    targetAccountID: accountId
+  });
+  if (!infoRaw || infoRaw === "-1" || infoRaw.startsWith("<")) {
+    throw new Error(`Boomlings userInfo failed: ${infoRaw?.slice(0, 60)}`);
+  }
+
+  const info = parseGdObj(infoRaw.split("#")[0]);
+  return {
+    username: info["1"] || username,
+    stars: Number(info["3"] ?? 0),
+    moons: Number(info["52"] ?? 0),
+    diamonds: Number(info["46"] ?? 0),
+    coins: Number(info["13"] ?? 0),
+    userCoins: Number(info["17"] ?? 0),
+    demons: Number(info["4"] ?? 0),
+    cp: Number(info["8"] ?? 0)
+  };
+}
+
+async function getGdStats(username, fallbackStats) {
+  try {
+    return await getGdStatsFromBoomlings(username);
+  } catch (boomErr) {
+    console.warn(`Boomlings direct sync failed (${boomErr.message}); trying GDBrowser...`);
+    try {
+      const res = await fetch(
+        `https://gdbrowser.com/api/profile/${encodeURIComponent(username)}`,
+        { signal: AbortSignal.timeout(10000) }
+      );
+      if (!res.ok) throw new Error(`GDBrowser HTTP ${res.status}`);
+      const p = await res.json();
+      if (!p || p.stars === undefined) throw new Error("Invalid GDBrowser response");
+      return {
+        username: p.username || username,
+        stars: Number(p.stars ?? 0),
+        moons: Number(p.moons ?? 0),
+        diamonds: Number(p.diamonds ?? 0),
+        coins: Number(p.coins ?? 0),
+        userCoins: Number(p.userCoins ?? 0),
+        demons: Number(p.demons ?? 0),
+        cp: Number(p.cp ?? 0)
+      };
+    } catch (gdbErr) {
+      console.warn(`GDBrowser fallback failed (${gdbErr.message}); keeping previous GD stats.`);
+      return fallbackStats ?? null;
+    }
   }
 }
 
