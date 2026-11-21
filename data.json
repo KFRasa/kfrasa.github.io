@@ -1,7 +1,16 @@
 {
-  "updatedAt": "2026-11-21T17:04:22.611Z",
+  "updatedAt": "2026-11-21T17:21:07.167Z",
   "subscribers": 166,
-  "gd": null,
+  "gd": {
+    "username": "KFRasa",
+    "stars": 2346,
+    "moons": 638,
+    "diamonds": 12009,
+    "coins": 89,
+    "userCoins": 336,
+    "demons": 19,
+    "cp": 0
+  },
   "videos": [
     {
       "label": "most recent",
@@ -27,7 +36,7 @@
       "label": "most recent",
       "id": "FlHvumroLFc",
       "title": "eat sleep dash repeat 🔥 | #shorts #geometrydash #gaming",
-      "views": 3753
+      "views": 4430
     },
     {
       "label": "most popular",
