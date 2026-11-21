@@ -114,7 +114,13 @@ async function getGdStats(username, fallbackStats) {
       `${GD_RELAY_URL}?user=${encodeURIComponent(username)}`,
       { signal: AbortSignal.timeout(10000) }
     );
-    const p = await res.json();
+    const text = await res.text();
+    let p;
+    try {
+      p = JSON.parse(text);
+    } catch {
+      throw new Error(`Worker did not return JSON (got: ${text.slice(0, 40)})`);
+    }
     if (!res.ok || p?.stars === undefined) {
       throw new Error(p?.error || `Worker HTTP ${res.status}`);
     }
@@ -149,4 +155,26 @@ async function main() {
     getGdStats(GD_USERNAME, prevData.gd)
   ]);
 
-  const [videos, shorts] = await Promise
+  const [videos, shorts] = await Promise.all([
+    getVideoDetails(videoIds),
+    getVideoDetails(shortIds)
+  ]);
+
+  const output = {
+    updatedAt: new Date().toISOString(),
+    subscribers,
+    gd,
+    videos: pickThree(videos, "first video"),
+    shorts: pickThree(shorts, "first short")
+  };
+
+  await writeFile("data.json", JSON.stringify(output, null, 2) + "\n", "utf8");
+  console.log(
+    `Updated data.json (${subscribers ?? "?"} subs, ${videos.length} videos, ${shorts.length} shorts, GD stars: ${gd?.stars ?? "?"})`
+  );
+}
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
