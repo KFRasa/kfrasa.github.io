@@ -865,6 +865,7 @@
       handle: "@KFRasa",
       bio: "just a small gd youtuber",
       channelUrl: "https://www.youtube.com/@KFRasa",
+      gdUsername: "KFRasa",
       gdProfileUrl: "https://gdbrowser.com/u/KFRasa",
       iconPath: "KFRasaGD.png",
       petGifPath: "petpet.gif",
@@ -890,7 +891,6 @@
         }
       ],
 
-      // Fallback data if data.json hasn't loaded
       videos: [
         { label: "most recent", title: "Latest Upload", url: "", views: null },
         { label: "most popular", title: "Most Popular Upload", url: "", views: null },
@@ -912,6 +912,8 @@
       { key: "demons", label: "demons", img: "https://gdbrowser.com/assets/demon.png", fallbackImg: "https://gdbrowser.com/assets/gdfaces/demon.png" },
       { key: "cp", label: "cp", img: "https://gdbrowser.com/assets/cp.png", hideIfZero: true }
     ];
+
+    const GD_CACHE_KEY = "kfrasa_gd_cache_v1";
 
     function formatViews(views) {
       if (views === null || views === undefined || Number.isNaN(Number(views))) {
@@ -1043,6 +1045,37 @@
       });
     }
 
+    async function fetchGdFromBrowser(username) {
+      try {
+        const cached = JSON.parse(localStorage.getItem(GD_CACHE_KEY));
+        if (cached?.gd && Date.now() - cached.fetchedAt < 3600000) {
+          return cached.gd;
+        }
+      } catch {}
+
+      try {
+        const res = await fetch(`https://gdbrowser.com/api/profile/${encodeURIComponent(username)}`);
+        if (!res.ok) return null;
+        const p = await res.json();
+        if (!p || p.stars === undefined) return null;
+
+        const gd = {
+          username: p.username || username,
+          stars: Number(p.stars ?? 0),
+          moons: Number(p.moons ?? 0),
+          diamonds: Number(p.diamonds ?? 0),
+          coins: Number(p.coins ?? 0),
+          userCoins: Number(p.userCoins ?? 0),
+          demons: Number(p.demons ?? 0),
+          cp: Number(p.cp ?? 0)
+        };
+        localStorage.setItem(GD_CACHE_KEY, JSON.stringify({ fetchedAt: Date.now(), gd }));
+        return gd;
+      } catch {
+        return null;
+      }
+    }
+
     function render(videos, shorts, updatedAt, subscribers, gd) {
       document.title = CHANNEL.name;
       ["favicon", "avatarImg", "heroWatermark", "dividerIcon", "footerIcon"].forEach((id) => {
@@ -1171,20 +1204,25 @@
     }
 
     async function init() {
+      let data = null;
       try {
         const cacheBust = Math.floor(Date.now() / 60000);
         const res = await fetch(`data.json?v=${cacheBust}`);
-        if (!res.ok) throw new Error("No data.json yet");
-        const data = await res.json();
-        render(
-          data.videos?.length ? data.videos : CHANNEL.videos,
-          data.shorts?.length ? data.shorts : CHANNEL.shorts,
-          data.updatedAt,
-          data.subscribers,
-          data.gd
-        );
-      } catch {
-        render(CHANNEL.videos, CHANNEL.shorts, null, null, null);
+        if (res.ok) data = await res.json();
+      } catch {}
+
+      render(
+        data?.videos?.length ? data.videos : CHANNEL.videos,
+        data?.shorts?.length ? data.shorts : CHANNEL.shorts,
+        data?.updatedAt || null,
+        data?.subscribers ?? null,
+        data?.gd ?? null
+      );
+
+      // If data.json didn't have GD stats (e.g. GitHub Actions IP blocked), fetch via browser
+      if (!data?.gd) {
+        const liveGd = await fetchGdFromBrowser(CHANNEL.gdUsername);
+        if (liveGd) renderGdStats(liveGd);
       }
     }
 
