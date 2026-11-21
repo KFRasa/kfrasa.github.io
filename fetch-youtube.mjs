@@ -1,5 +1,8 @@
 import { readFile, writeFile } from "node:fs/promises";
-import https from "node:https";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+
+const execFileAsync = promisify(execFile);
 
 const HANDLE = "@KFRasa";
 const GD_USERNAME = "KFRasa";
@@ -108,38 +111,22 @@ function pickThree(items, firstLabel) {
   ];
 }
 
-// Boomlings requires an empty User-Agent header or Cloudflare blocks the request
-function postBoomlings(path, formParams) {
-  return new Promise((resolve, reject) => {
-    const body = new URLSearchParams(formParams).toString();
-    const req = https.request(
-      {
-        hostname: "www.boomlings.com",
-        path: `/database/${path}`,
-        method: "POST",
-        headers: {
-          "User-Agent": "",
-          "Content-Type": "application/x-www-form-urlencoded",
-          "Content-Length": Buffer.byteLength(body)
-        },
-        timeout: 10000
-      },
-      (res) => {
-        let chunks = "";
-        res.on("data", (d) => (chunks += d));
-        res.on("end", () => {
-          if (res.statusCode < 200 || res.statusCode >= 300) {
-            return reject(new Error(`Boomlings HTTP ${res.statusCode}`));
-          }
-          resolve(chunks);
-        });
-      }
-    );
-    req.on("timeout", () => req.destroy(new Error("Boomlings timeout")));
-    req.on("error", reject);
-    req.write(body);
-    req.end();
-  });
+async function postBoomlings(path, formParams) {
+  const body = new URLSearchParams(formParams).toString();
+  const { stdout } = await execFileAsync("curl", [
+    "-sS",
+    "-f",
+    "--max-time",
+    "10",
+    "-X",
+    "POST",
+    "-H",
+    "User-Agent:",
+    "-d",
+    body,
+    `http://www.boomlings.com/database/${path}`
+  ]);
+  return stdout;
 }
 
 function parseGdObj(str) {
