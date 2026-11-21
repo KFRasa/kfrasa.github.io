@@ -1,11 +1,8 @@
 import { readFile, writeFile } from "node:fs/promises";
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
-
-const execFileAsync = promisify(execFile);
 
 const HANDLE = "@KFRasa";
 const GD_USERNAME = "KFRasa";
+const GD_RELAY_URL = "https://kfrasa-gd.rasawahbi304.workers.dev/";
 const API_KEY = process.env.YOUTUBE_API_KEY;
 
 if (!API_KEY) {
@@ -111,97 +108,29 @@ function pickThree(items, firstLabel) {
   ];
 }
 
-async function postBoomlings(path, formParams) {
-  const body = new URLSearchParams(formParams).toString();
-  const { stdout } = await execFileAsync("curl", [
-    "-sS",
-    "-f",
-    "--max-time",
-    "10",
-    "-X",
-    "POST",
-    "-H",
-    "User-Agent:",
-    "-d",
-    body,
-    `http://www.boomlings.com/database/${path}`
-  ]);
-  return stdout;
-}
-
-function parseGdObj(str) {
-  const parts = str.split(":");
-  const obj = {};
-  for (let i = 0; i < parts.length - 1; i += 2) {
-    obj[parts[i]] = parts[i + 1];
-  }
-  return obj;
-}
-
-async function getGdStatsFromBoomlings(username) {
-  const searchRaw = await postBoomlings("getGJUsers20.php", {
-    secret: "Wmfd2893gb7",
-    str: username
-  });
-  if (!searchRaw || searchRaw === "-1" || searchRaw.startsWith("<")) {
-    throw new Error(`Boomlings search failed: ${searchRaw?.slice(0, 60)}`);
-  }
-
-  const users = searchRaw.split("#")[0].split("|").map(parseGdObj);
-  const match =
-    users.find((u) => (u["1"] || "").toLowerCase() === username.toLowerCase()) || users[0];
-
-  const accountId = match?.["16"];
-  if (!accountId) throw new Error("GD accountID not found");
-
-  const infoRaw = await postBoomlings("getGJUserInfo20.php", {
-    secret: "Wmfd2893gb7",
-    targetAccountID: accountId
-  });
-  if (!infoRaw || infoRaw === "-1" || infoRaw.startsWith("<")) {
-    throw new Error(`Boomlings userInfo failed: ${infoRaw?.slice(0, 60)}`);
-  }
-
-  const info = parseGdObj(infoRaw.split("#")[0]);
-  return {
-    username: info["1"] || username,
-    stars: Number(info["3"] ?? 0),
-    moons: Number(info["52"] ?? 0),
-    diamonds: Number(info["46"] ?? 0),
-    coins: Number(info["13"] ?? 0),
-    userCoins: Number(info["17"] ?? 0),
-    demons: Number(info["4"] ?? 0),
-    cp: Number(info["8"] ?? 0)
-  };
-}
-
 async function getGdStats(username, fallbackStats) {
   try {
-    return await getGdStatsFromBoomlings(username);
-  } catch (boomErr) {
-    console.warn(`Boomlings direct sync failed (${boomErr.message}); trying GDBrowser...`);
-    try {
-      const res = await fetch(
-        `https://gdbrowser.com/api/profile/${encodeURIComponent(username)}`,
-        { signal: AbortSignal.timeout(10000) }
-      );
-      if (!res.ok) throw new Error(`GDBrowser HTTP ${res.status}`);
-      const p = await res.json();
-      if (!p || p.stars === undefined) throw new Error("Invalid GDBrowser response");
-      return {
-        username: p.username || username,
-        stars: Number(p.stars ?? 0),
-        moons: Number(p.moons ?? 0),
-        diamonds: Number(p.diamonds ?? 0),
-        coins: Number(p.coins ?? 0),
-        userCoins: Number(p.userCoins ?? 0),
-        demons: Number(p.demons ?? 0),
-        cp: Number(p.cp ?? 0)
-      };
-    } catch (gdbErr) {
-      console.warn(`GDBrowser fallback failed (${gdbErr.message}); keeping previous GD stats.`);
-      return fallbackStats ?? null;
+    const res = await fetch(
+      `${GD_RELAY_URL}?user=${encodeURIComponent(username)}`,
+      { signal: AbortSignal.timeout(10000) }
+    );
+    const p = await res.json();
+    if (!res.ok || p?.stars === undefined) {
+      throw new Error(p?.error || `Worker HTTP ${res.status}`);
     }
+    return {
+      username: p.username || username,
+      stars: Number(p.stars ?? 0),
+      moons: Number(p.moons ?? 0),
+      diamonds: Number(p.diamonds ?? 0),
+      coins: Number(p.coins ?? 0),
+      userCoins: Number(p.userCoins ?? 0),
+      demons: Number(p.demons ?? 0),
+      cp: Number(p.cp ?? 0)
+    };
+  } catch (err) {
+    console.warn(`GD Worker sync failed (${err.message}); keeping previous GD stats.`);
+    return fallbackStats ?? null;
   }
 }
 
@@ -220,26 +149,4 @@ async function main() {
     getGdStats(GD_USERNAME, prevData.gd)
   ]);
 
-  const [videos, shorts] = await Promise.all([
-    getVideoDetails(videoIds),
-    getVideoDetails(shortIds)
-  ]);
-
-  const output = {
-    updatedAt: new Date().toISOString(),
-    subscribers,
-    gd,
-    videos: pickThree(videos, "first video"),
-    shorts: pickThree(shorts, "first short")
-  };
-
-  await writeFile("data.json", JSON.stringify(output, null, 2) + "\n", "utf8");
-  console.log(
-    `Updated data.json (${subscribers ?? "?"} subs, ${videos.length} videos, ${shorts.length} shorts, GD stars: ${gd?.stars ?? "?"})`
-  );
-}
-
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+  const [videos, shorts] = await Promise
