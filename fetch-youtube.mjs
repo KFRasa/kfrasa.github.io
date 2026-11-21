@@ -1,6 +1,7 @@
-import { writeFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 
 const HANDLE = "@KFRasa";
+const GD_USERNAME = "KFRasa";
 const API_KEY = process.env.YOUTUBE_API_KEY;
 
 if (!API_KEY) {
@@ -25,14 +26,17 @@ async function ytApi(endpoint, params) {
   return data;
 }
 
-async function getChannelId(handle) {
+async function getChannelInfo(handle) {
   const data = await ytApi("channels", {
-    part: "id",
+    part: "id,statistics",
     forHandle: handle
   });
-  const id = data.items?.[0]?.id;
-  if (!id) throw new Error(`Channel not found for handle: ${handle}`);
-  return id;
+  const ch = data.items?.[0];
+  if (!ch?.id) throw new Error(`Channel not found for handle: ${handle}`);
+
+  const hidden = ch.statistics?.hiddenSubscriberCount === true;
+  const subscribers = hidden ? null : Number(ch.statistics?.subscriberCount ?? 0);
+  return { channelId: ch.id, subscribers };
 }
 
 async function getAllPlaylistVideoIds(playlistId) {
@@ -55,7 +59,6 @@ async function getAllPlaylistVideoIds(playlistId) {
       }
       pageToken = data.nextPageToken;
     } catch (err) {
-      // 404 happens if the channel has 0 regular videos or 0 shorts
       if (err.status === 404) return [];
       throw err;
     }
@@ -104,13 +107,48 @@ function pickThree(items, firstLabel) {
   ];
 }
 
+async function getGdStats(username, fallbackStats) {
+  try {
+    const res = await fetch(
+      `https://gdbrowser.com/api/profile/${encodeURIComponent(username)}`,
+      {
+        headers: { "User-Agent": "KFRasa-Site-Sync/1.0" },
+        signal: AbortSignal.timeout(10000)
+      }
+    );
+    if (!res.ok) throw new Error(`GDBrowser HTTP ${res.status}`);
+    const p = await res.json();
+    if (!p || p.stars === undefined) throw new Error("Invalid GDBrowser profile response");
+
+    return {
+      username: p.username || username,
+      stars: Number(p.stars ?? 0),
+      moons: Number(p.moons ?? 0),
+      diamonds: Number(p.diamonds ?? 0),
+      coins: Number(p.coins ?? 0),
+      userCoins: Number(p.userCoins ?? 0),
+      demons: Number(p.demons ?? 0),
+      cp: Number(p.cp ?? 0)
+    };
+  } catch (err) {
+    console.warn(`GDBrowser sync skipped (${err.message}); keeping previous GD stats.`);
+    return fallbackStats ?? null;
+  }
+}
+
 async function main() {
-  const channelId = await getChannelId(HANDLE);
-  // UULF = public regular videos, UUSH = public shorts
+  let prevData = {};
+  try {
+    prevData = JSON.parse(await readFile("data.json", "utf8"));
+  } catch {}
+
+  const { channelId, subscribers } = await getChannelInfo(HANDLE);
   const suffix = channelId.slice(2);
-  const [videoIds, shortIds] = await Promise.all([
+
+  const [videoIds, shortIds, gd] = await Promise.all([
     getAllPlaylistVideoIds(`UULF${suffix}`),
-    getAllPlaylistVideoIds(`UUSH${suffix}`)
+    getAllPlaylistVideoIds(`UUSH${suffix}`),
+    getGdStats(GD_USERNAME, prevData.gd)
   ]);
 
   const [videos, shorts] = await Promise.all([
@@ -120,12 +158,16 @@ async function main() {
 
   const output = {
     updatedAt: new Date().toISOString(),
+    subscribers,
+    gd,
     videos: pickThree(videos, "first video"),
     shorts: pickThree(shorts, "first short")
   };
 
   await writeFile("data.json", JSON.stringify(output, null, 2) + "\n", "utf8");
-  console.log(`Updated data.json (${videos.length} videos, ${shorts.length} shorts)`);
+  console.log(
+    `Updated data.json (${subscribers ?? "?"} subs, ${videos.length} videos, ${shorts.length} shorts, GD stars: ${gd?.stars ?? "?"})`
+  );
 }
 
 main().catch((err) => {
