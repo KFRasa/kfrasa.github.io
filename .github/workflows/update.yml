@@ -1,9 +1,7 @@
 name: Sync YouTube Data
 
 on:
-  schedule:
-    - cron: "0 * * * *" # Runs every hour
-  workflow_dispatch:    # Lets you run it manually in the Actions tab
+  workflow_dispatch:
 
 permissions:
   contents: write
