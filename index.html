@@ -86,7 +86,6 @@
       animation: gridWiggle 7s ease-in-out infinite;
     }
 
-    /* Soft radial-gradient blobs (no heavy GPU blur filter) */
     .bg-blob {
       position: absolute;
       border-radius: 50%;
@@ -129,7 +128,6 @@
       animation: floatWiggleA 10s ease-in-out infinite reverse, pulseB 3.9s ease-in-out infinite;
     }
 
-    /* Subtle diagonal sweep beam */
     .bg-sweep {
       position: absolute;
       inset: -40%;
@@ -144,7 +142,6 @@
       animation: sweepSlide 12s ease-in-out infinite;
     }
 
-    /* Lightweight floating mini GD cubes */
     .bg-cubes {
       position: absolute;
       inset: 0;
@@ -1367,41 +1364,80 @@
       let decodedPromise = null;
       let decodedCache = null;
       let isPlaying = false;
+      let isPosting = false;
       let currentCount = null;
+      let lastActivity = Date.now();
 
-      const setCount = (n, flash = false) => {
+      const markActive = () => {
+        lastActivity = Date.now();
+      };
+      ["pointerdown", "mousemove", "keydown", "scroll", "touchstart"].forEach((ev) => {
+        window.addEventListener(ev, markActive, { passive: true });
+      });
+
+      const flashCount = () => {
+        boomEl.classList.add("flash");
+        setTimeout(() => boomEl.classList.remove("flash"), 350);
+      };
+
+      const setCount = (n, fromPost = false) => {
         if (typeof n !== "number" || Number.isNaN(n)) return;
-        currentCount = n;
-        boomEl.textContent = n.toLocaleString("en");
-        if (flash) {
-          boomEl.classList.add("flash");
-          setTimeout(() => boomEl.classList.remove("flash"), 350);
-        }
+        const safe = currentCount === null ? n : Math.max(currentCount, n);
+        const increased = currentCount !== null && safe > currentCount;
+        currentCount = safe;
+        boomEl.textContent = safe.toLocaleString("en");
+        if (fromPost || increased) flashCount();
       };
 
       const fetchBooms = async () => {
+        if (isPosting) return;
         try {
           const res = await fetch(CHANNEL.boomsApiUrl, { cache: "no-store" });
           if (!res.ok) return;
           const d = await res.json();
-          if (typeof d?.count === "number") setCount(d.count);
+          if (typeof d?.count === "number" && !isPosting) {
+            setCount(d.count);
+          }
         } catch {}
       };
 
       const recordBoom = async () => {
-        if (typeof currentCount === "number") setCount(currentCount + 1, true);
+        markActive();
+        isPosting = true;
+        setCount((currentCount ?? 0) + 1, true);
         try {
           const res = await fetch(CHANNEL.boomsApiUrl, { method: "POST" });
           if (!res.ok) return;
           const d = await res.json();
-          if (typeof d?.count === "number") setCount(d.count, true);
-        } catch {}
+          if (typeof d?.count === "number") {
+            setCount(d.count, true);
+          }
+        } catch {} finally {
+          isPosting = false;
+        }
       };
 
       fetchBooms();
+
+      // Poll every 2 seconds while tab is visible & active (pauses after 5m idle)
       setInterval(() => {
-        if (document.visibilityState === "visible") fetchBooms();
-      }, 20000);
+        const isIdle = Date.now() - lastActivity > 5 * 60 * 1000;
+        if (document.visibilityState === "visible" && !isIdle) {
+          fetchBooms();
+        }
+      }, 2000);
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+          markActive();
+          fetchBooms();
+        }
+      });
+
+      window.addEventListener("focus", () => {
+        markActive();
+        fetchBooms();
+      });
 
       const loadGif = () => {
         if (decodedCache) return Promise.resolve(decodedCache);
@@ -1425,7 +1461,6 @@
         return decodedPromise;
       };
 
-      // Preload immediately on page load so clicking has zero delay
       loadGif().catch(() => {});
 
       const drawFrame = (data, idx) => {
@@ -1451,10 +1486,8 @@
           const data = await loadGif();
           if (!data.frames.length) throw new Error("Empty GIF");
 
-          // Draw frame 0 synchronously right on click
           drawFrame(data, 0);
 
-          // Forward pass (1x speed)
           await new Promise((resolve) => {
             const start = performance.now();
             let lastIdx = 0;
@@ -1477,7 +1510,6 @@
             requestAnimationFrame(tick);
           });
 
-          // Rewind pass (3x speed)
           await new Promise((resolve) => {
             const start = performance.now();
             let lastIdx = -1;
