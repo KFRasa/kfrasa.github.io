@@ -7,20 +7,20 @@
   <link id="favicon" rel="icon" type="image/png" href="KFRasaGD.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Mono:wght@400;500&family=Rubik:wght@400;500;600&display=swap" rel="stylesheet" />
 
   <style>
     :root {
-      --bg: #090a0c;
-      --surface: rgba(17, 19, 24, 0.88);
-      --surface-hover: rgba(23, 27, 36, 0.94);
-      --border: #1e222a;
+      --bg: #08090c;
+      --surface: rgba(16, 19, 25, 0.86);
+      --surface-hover: rgba(22, 26, 35, 0.94);
+      --border: #1e222b;
       --text: #ededed;
       --muted: #7b8391;
       --cyan: #00c8ff;
       --white: #ffffff;
-      --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-      --sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --mono: "Fira Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      --sans: "Rubik", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
     * {
@@ -66,24 +66,13 @@
       100% { background-position: 200% 0%; }
     }
 
-    /* Lightweight pulsing, moving, wiggling #00c8ff & #ffffff background */
+    /* Smooth, dynamic, lightweight #00c8ff & #ffffff background (no grid, no heavy blur) */
     .bg-fx {
       position: fixed;
       inset: 0;
       z-index: 0;
       pointer-events: none;
       overflow: hidden;
-    }
-
-    .bg-grid {
-      position: absolute;
-      inset: -60px;
-      background-image:
-        linear-gradient(to right, rgba(0, 200, 255, 0.06) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
-      background-size: 38px 38px;
-      will-change: transform, opacity;
-      animation: gridWiggle 7s ease-in-out infinite;
     }
 
     .bg-blob {
@@ -93,53 +82,69 @@
     }
 
     .blob-cyan-1 {
-      width: 620px;
-      height: 620px;
-      top: -190px;
-      left: -170px;
-      background: radial-gradient(circle, rgba(0, 200, 255, 0.32) 0%, rgba(0, 200, 255, 0) 68%);
-      animation: floatWiggleA 9s ease-in-out infinite, pulseA 3.6s ease-in-out infinite;
+      width: 680px;
+      height: 680px;
+      top: -220px;
+      left: -180px;
+      background: radial-gradient(circle, rgba(0, 200, 255, 0.34) 0%, rgba(0, 200, 255, 0.08) 38%, rgba(0, 200, 255, 0) 70%);
+      animation: orbitA 14s cubic-bezier(0.45, 0, 0.55, 1) infinite, pulseSoft 4.2s ease-in-out infinite;
     }
 
     .blob-white-1 {
-      width: 540px;
-      height: 540px;
-      top: 10%;
-      right: -180px;
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 68%);
-      animation: floatWiggleB 11s ease-in-out infinite, pulseB 4.4s ease-in-out infinite;
+      width: 600px;
+      height: 600px;
+      top: 6%;
+      right: -200px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0.05) 40%, rgba(255, 255, 255, 0) 70%);
+      animation: orbitB 17s cubic-bezier(0.45, 0, 0.55, 1) infinite, pulseWhite 5s ease-in-out infinite;
     }
 
     .blob-cyan-2 {
-      width: 680px;
-      height: 680px;
-      bottom: -240px;
-      left: 16%;
-      background: radial-gradient(circle, rgba(0, 200, 255, 0.28) 0%, rgba(0, 200, 255, 0) 68%);
-      animation: floatWiggleB 13s ease-in-out infinite reverse, pulseA 4.8s ease-in-out infinite;
+      width: 740px;
+      height: 740px;
+      bottom: -260px;
+      left: 14%;
+      background: radial-gradient(circle, rgba(0, 200, 255, 0.30) 0%, rgba(0, 200, 255, 0.06) 40%, rgba(0, 200, 255, 0) 70%);
+      animation: orbitB 19s cubic-bezier(0.45, 0, 0.55, 1) infinite reverse, pulseSoft 5.4s ease-in-out infinite;
     }
 
     .blob-white-2 {
-      width: 480px;
-      height: 480px;
-      bottom: -40px;
-      left: -140px;
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0) 68%);
-      animation: floatWiggleA 10s ease-in-out infinite reverse, pulseB 3.9s ease-in-out infinite;
+      width: 520px;
+      height: 520px;
+      bottom: -60px;
+      left: -150px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.20) 0%, rgba(255, 255, 255, 0.04) 40%, rgba(255, 255, 255, 0) 70%);
+      animation: orbitA 15s cubic-bezier(0.45, 0, 0.55, 1) infinite reverse, pulseWhite 4.6s ease-in-out infinite;
     }
 
-    .bg-sweep {
+    /* Smooth flowing light ribbons */
+    .bg-wave {
       position: absolute;
-      inset: -40%;
+      inset: -45%;
+      will-change: transform, opacity;
+    }
+
+    .bg-wave-1 {
       background: linear-gradient(
-        115deg,
-        transparent 44%,
-        rgba(0, 200, 255, 0.045) 49%,
-        rgba(255, 255, 255, 0.035) 51%,
-        transparent 56%
+        118deg,
+        transparent 38%,
+        rgba(0, 200, 255, 0.06) 47%,
+        rgba(255, 255, 255, 0.045) 50%,
+        rgba(0, 200, 255, 0.05) 53%,
+        transparent 62%
       );
-      will-change: transform;
-      animation: sweepSlide 12s ease-in-out infinite;
+      animation: waveGlideA 13s ease-in-out infinite;
+    }
+
+    .bg-wave-2 {
+      background: linear-gradient(
+        62deg,
+        transparent 40%,
+        rgba(255, 255, 255, 0.04) 48%,
+        rgba(0, 200, 255, 0.055) 52%,
+        transparent 60%
+      );
+      animation: waveGlideB 16s ease-in-out infinite;
     }
 
     .bg-cubes {
@@ -149,17 +154,19 @@
 
     .bg-cube {
       position: absolute;
-      bottom: -40px;
+      bottom: -48px;
       border-radius: 3px;
-      border: 1px solid rgba(0, 200, 255, 0.28);
-      background: rgba(0, 200, 255, 0.03);
+      border: 1px solid rgba(0, 200, 255, 0.34);
+      background: rgba(0, 200, 255, 0.04);
+      box-shadow: 0 0 10px rgba(0, 200, 255, 0.08);
       will-change: transform, opacity;
       animation: cubeFloat linear infinite;
     }
 
     .bg-cube.white {
-      border-color: rgba(255, 255, 255, 0.22);
-      background: rgba(255, 255, 255, 0.025);
+      border-color: rgba(255, 255, 255, 0.26);
+      background: rgba(255, 255, 255, 0.03);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.06);
     }
 
     @keyframes cubeFloat {
@@ -167,66 +174,61 @@
         transform: translate3d(0, 0, 0) rotate(0deg);
         opacity: 0;
       }
-      12% {
-        opacity: 0.75;
+      14% {
+        opacity: 0.8;
       }
       50% {
-        transform: translate3d(var(--wiggle, 18px), -55vh, 0) rotate(140deg);
+        transform: translate3d(var(--wiggle, 24px), -55vh, 0) rotate(135deg);
       }
-      88% {
-        opacity: 0.65;
+      86% {
+        opacity: 0.7;
       }
       100% {
-        transform: translate3d(calc(var(--wiggle, 18px) * -0.6), -115vh, 0) rotate(280deg);
+        transform: translate3d(calc(var(--wiggle, 24px) * -0.7), -116vh, 0) rotate(270deg);
         opacity: 0;
       }
     }
 
-    @keyframes sweepSlide {
-      0%, 100% { transform: translate3d(-22%, -8%, 0); }
-      50%      { transform: translate3d(22%, 8%, 0); }
+    @keyframes waveGlideA {
+      0%, 100% { transform: translate3d(-18%, -10%, 0) rotate(-2deg); opacity: 0.7; }
+      50%      { transform: translate3d(18%, 10%, 0) rotate(2deg); opacity: 1; }
     }
 
-    @keyframes floatWiggleA {
-      0%   { transform: translate3d(0px, 0px, 0) rotate(0deg); }
-      20%  { transform: translate3d(65px, 28px, 0) rotate(6deg); }
-      40%  { transform: translate3d(25px, 75px, 0) rotate(-5deg); }
-      60%  { transform: translate3d(90px, 40px, 0) rotate(8deg); }
-      80%  { transform: translate3d(35px, -25px, 0) rotate(-4deg); }
-      100% { transform: translate3d(0px, 0px, 0) rotate(0deg); }
+    @keyframes waveGlideB {
+      0%, 100% { transform: translate3d(16%, -8%, 0) rotate(2deg); opacity: 0.6; }
+      50%      { transform: translate3d(-16%, 12%, 0) rotate(-2deg); opacity: 1; }
     }
 
-    @keyframes floatWiggleB {
-      0%   { transform: translate3d(0px, 0px, 0) rotate(0deg); }
-      25%  { transform: translate3d(-70px, 35px, 0) rotate(-7deg); }
-      50%  { transform: translate3d(-30px, -55px, 0) rotate(6deg); }
-      75%  { transform: translate3d(-85px, -15px, 0) rotate(-5deg); }
-      100% { transform: translate3d(0px, 0px, 0) rotate(0deg); }
+    @keyframes orbitA {
+      0%   { transform: translate3d(0, 0, 0) scale(1); }
+      25%  { transform: translate3d(85px, 35px, 0) scale(1.06); }
+      50%  { transform: translate3d(40px, 95px, 0) scale(0.96); }
+      75%  { transform: translate3d(110px, 20px, 0) scale(1.08); }
+      100% { transform: translate3d(0, 0, 0) scale(1); }
     }
 
-    @keyframes pulseA {
-      0%, 100% { opacity: 0.65; transform: scale(0.95); }
-      50%      { opacity: 1; transform: scale(1.1); }
+    @keyframes orbitB {
+      0%   { transform: translate3d(0, 0, 0) scale(1); }
+      25%  { transform: translate3d(-90px, 45px, 0) scale(1.07); }
+      50%  { transform: translate3d(-35px, -65px, 0) scale(0.95); }
+      75%  { transform: translate3d(-105px, -20px, 0) scale(1.05); }
+      100% { transform: translate3d(0, 0, 0) scale(1); }
     }
 
-    @keyframes pulseB {
-      0%, 100% { opacity: 0.55; transform: scale(0.92); }
-      50%      { opacity: 0.95; transform: scale(1.08); }
+    @keyframes pulseSoft {
+      0%, 100% { opacity: 0.65; }
+      50%      { opacity: 1; }
     }
 
-    @keyframes gridWiggle {
-      0%   { transform: translate3d(0px, 0px, 0) rotate(0deg); opacity: 0.7; }
-      25%  { transform: translate3d(12px, -8px, 0) rotate(0.4deg); opacity: 1; }
-      50%  { transform: translate3d(-10px, 14px, 0) rotate(-0.4deg); opacity: 0.75; }
-      75%  { transform: translate3d(8px, 6px, 0) rotate(0.3deg); opacity: 0.95; }
-      100% { transform: translate3d(0px, 0px, 0) rotate(0deg); opacity: 0.7; }
+    @keyframes pulseWhite {
+      0%, 100% { opacity: 0.55; }
+      50%      { opacity: 0.95; }
     }
 
     @media (prefers-reduced-motion: reduce) {
       body::before,
-      .bg-grid,
       .bg-blob,
-      .bg-sweep,
+      .bg-wave,
       .bg-cube {
         animation: none !important;
       }
@@ -342,7 +344,7 @@
     }
 
     .profile-meta h1 {
-      font-size: 1.2rem;
+      font-size: 1.24rem;
       font-weight: 600;
       letter-spacing: -0.01em;
     }
@@ -350,7 +352,7 @@
     .profile-meta p {
       font-size: 0.875rem;
       color: var(--muted);
-      margin-top: 3px;
+      margin-top: 2px;
     }
 
     .boom-line {
@@ -920,12 +922,12 @@
 </head>
 <body>
   <div class="bg-fx" aria-hidden="true">
-    <div class="bg-grid"></div>
     <div class="bg-blob blob-cyan-1"></div>
     <div class="bg-blob blob-white-1"></div>
     <div class="bg-blob blob-cyan-2"></div>
     <div class="bg-blob blob-white-2"></div>
-    <div class="bg-sweep"></div>
+    <div class="bg-wave bg-wave-1"></div>
+    <div class="bg-wave bg-wave-2"></div>
     <div id="bgCubes" class="bg-cubes"></div>
   </div>
 
@@ -1080,15 +1082,17 @@
     function initBgCubes() {
       const container = document.getElementById("bgCubes");
       const specs = [
-        { left: "6%",  size: 12, dur: 16, delay: -3,  wiggle: "20px",  white: false },
-        { left: "15%", size: 18, dur: 22, delay: -11, wiggle: "-24px", white: true  },
-        { left: "26%", size: 10, dur: 14, delay: -7,  wiggle: "16px",  white: false },
-        { left: "38%", size: 15, dur: 19, delay: -14, wiggle: "-18px", white: true  },
-        { left: "51%", size: 13, dur: 17, delay: -5,  wiggle: "22px",  white: false },
-        { left: "64%", size: 20, dur: 24, delay: -16, wiggle: "-20px", white: false },
-        { left: "76%", size: 11, dur: 15, delay: -9,  wiggle: "18px",  white: true  },
-        { left: "87%", size: 16, dur: 20, delay: -2,  wiggle: "-22px", white: false },
-        { left: "94%", size: 12, dur: 18, delay: -12, wiggle: "14px",  white: true  }
+        { left: "4%",  size: 11, dur: 17, delay: -3,  wiggle: "26px",  white: false },
+        { left: "12%", size: 17, dur: 23, delay: -11, wiggle: "-28px", white: true  },
+        { left: "21%", size: 9,  dur: 15, delay: -7,  wiggle: "20px",  white: false },
+        { left: "31%", size: 14, dur: 20, delay: -14, wiggle: "-22px", white: true  },
+        { left: "42%", size: 12, dur: 18, delay: -5,  wiggle: "24px",  white: false },
+        { left: "53%", size: 19, dur: 25, delay: -16, wiggle: "-26px", white: false },
+        { left: "63%", size: 10, dur: 16, delay: -9,  wiggle: "20px",  white: true  },
+        { left: "73%", size: 15, dur: 21, delay: -2,  wiggle: "-24px", white: false },
+        { left: "82%", size: 13, dur: 19, delay: -12, wiggle: "18px",  white: true  },
+        { left: "89%", size: 18, dur: 24, delay: -8,  wiggle: "-22px", white: false },
+        { left: "95%", size: 11, dur: 16, delay: -15, wiggle: "16px",  white: true  }
       ];
       specs.forEach((s) => {
         const el = document.createElement("span");
@@ -1419,7 +1423,6 @@
 
       fetchBooms();
 
-      // Poll every 2 seconds while tab is visible & active (pauses after 5m idle)
       setInterval(() => {
         const isIdle = Date.now() - lastActivity > 5 * 60 * 1000;
         if (document.visibilityState === "visible" && !isIdle) {
