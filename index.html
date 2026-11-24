@@ -7,7 +7,7 @@
   <link id="favicon" rel="icon" type="image/png" href="KFRasaGD.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Mono:wght@400;500&family=Rubik:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Firjar:wght@400;500;600&family=Rubik:wght@400;500;600&display=swap" rel="stylesheet" />
 
   <style>
     :root {
@@ -19,7 +19,7 @@
       --muted: #7b8391;
       --cyan: #00c8ff;
       --white: #ffffff;
-      --mono: "Fira Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      --mono: "Firjar", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       --sans: "Rubik", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
@@ -66,7 +66,7 @@
       100% { background-position: 200% 0%; }
     }
 
-    /* Smooth, dynamic, lightweight #00c8ff & #ffffff background (no grid, no heavy blur) */
+    /* Smooth, dynamic, lightweight #00c8ff & #ffffff background */
     .bg-fx {
       position: fixed;
       inset: 0;
@@ -117,7 +117,6 @@
       animation: orbitA 15s cubic-bezier(0.45, 0, 0.55, 1) infinite reverse, pulseWhite 4.6s ease-in-out infinite;
     }
 
-    /* Smooth flowing light ribbons */
     .bg-wave {
       position: absolute;
       inset: -45%;
@@ -357,13 +356,15 @@
 
     .boom-line {
       font-family: var(--mono);
-      font-size: 0.69rem;
+      font-size: 0.74rem;
       color: var(--muted);
       margin-top: 4px;
     }
 
     .boom-count {
       color: var(--text);
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
       transition: color 0.2s ease;
     }
 
@@ -383,7 +384,8 @@
     .sub-badge {
       display: none;
       font-family: var(--mono);
-      font-size: 0.74rem;
+      font-size: 0.78rem;
+      font-variant-numeric: tabular-nums;
       color: var(--text);
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid var(--border);
@@ -394,11 +396,11 @@
 
     .yt-link {
       font-family: var(--mono);
-      font-size: 0.78rem;
+      font-size: 0.82rem;
       color: #090a0c;
       background: var(--cyan);
-      font-weight: 500;
-      padding: 8px 13px;
+      font-weight: 600;
+      padding: 8px 14px;
       border-radius: 6px;
       white-space: nowrap;
       transition: opacity 0.15s ease, transform 0.15s ease;
@@ -435,41 +437,42 @@
       display: flex;
       flex-wrap: nowrap;
       align-items: center;
-      gap: 10px;
+      gap: 11px;
       min-width: 0;
     }
 
     .gd-stat-item {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
+      gap: 5px;
       font-family: var(--mono);
       white-space: nowrap;
     }
 
     .gd-stat-icon {
-      width: 16px;
-      height: 16px;
+      width: 17px;
+      height: 17px;
       object-fit: contain;
       flex-shrink: 0;
     }
 
     .gd-stat-val {
-      font-size: 0.76rem;
+      font-size: 0.82rem;
       font-weight: 500;
+      font-variant-numeric: tabular-nums;
       color: var(--text);
     }
 
     .gd-stat-label {
-      font-size: 0.58rem;
+      font-size: 0.64rem;
       color: var(--muted);
       text-transform: uppercase;
-      letter-spacing: 0.03em;
+      letter-spacing: 0.04em;
     }
 
     .gd-stats-arrow {
       font-family: var(--mono);
-      font-size: 0.68rem;
+      font-size: 0.74rem;
       color: var(--muted);
       margin-left: auto;
       white-space: nowrap;
@@ -540,10 +543,10 @@
 
     .section-title h2 {
       font-family: var(--mono);
-      font-size: 0.78rem;
-      font-weight: 500;
+      font-size: 0.85rem;
+      font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.06em;
       color: var(--text);
     }
 
@@ -552,7 +555,7 @@
       align-items: center;
       gap: 6px;
       font-family: var(--mono);
-      font-size: 0.71rem;
+      font-size: 0.76rem;
       color: var(--muted);
     }
 
@@ -671,7 +674,7 @@
       align-items: center;
       justify-content: space-between;
       font-family: var(--mono);
-      font-size: 0.68rem;
+      font-size: 0.72rem;
       letter-spacing: 0.04em;
       text-transform: uppercase;
       color: var(--muted);
@@ -719,7 +722,7 @@
 
     .views-line {
       font-family: var(--mono);
-      font-size: 0.69rem;
+      font-size: 0.73rem;
       color: var(--muted);
     }
 
@@ -806,7 +809,7 @@
 
     .short-foot {
       font-family: var(--mono);
-      font-size: 0.68rem;
+      font-size: 0.72rem;
       color: var(--muted);
       display: flex;
       align-items: center;
@@ -836,7 +839,7 @@
 
     .link-sub {
       font-family: var(--mono);
-      font-size: 0.69rem;
+      font-size: 0.73rem;
       color: var(--muted);
       white-space: nowrap;
       overflow: hidden;
@@ -853,7 +856,7 @@
       justify-content: space-between;
       gap: 12px;
       font-family: var(--mono);
-      font-size: 0.74rem;
+      font-size: 0.8rem;
       color: var(--muted);
     }
 
@@ -876,7 +879,7 @@
       margin-top: 22px;
       text-align: center;
       font-family: var(--mono);
-      font-size: 0.74rem;
+      font-size: 0.8rem;
       color: var(--muted);
     }
 
@@ -1037,20 +1040,20 @@
       links: [
         {
           tag: "steam",
-          title: "my Steam profile",
-          sub: "steamcommunity.com/id/KFRasa",
+          title: "My Steam profile",
+          sub: "Check out my Steam profile!",
           url: "https://steamcommunity.com/id/KFRasa"
         },
         {
           tag: "group chat",
           title: "Steam group chat invite!",
-          sub: "join the steam chat",
+          sub: "Join the Steam GC!",
           url: "https://steamcommunity.com/chat/invite/GcsWhoGH"
         },
         {
           tag: "gd browser",
-          title: "my GD profile (web)",
-          sub: "gdbrowser.com/u/KFRasa",
+          title: "My GD profile (web)",
+          sub: "Exactly what you think it is.",
           url: "https://gdbrowser.com/u/KFRasa"
         }
       ],
